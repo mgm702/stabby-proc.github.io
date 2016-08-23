@@ -1,0 +1,39 @@
+# Permalinks
+permalink:           pretty
+
+# Setup
+title:               Stabby Proc
+tagline:             Taking a stab at this thing called blogging!
+url:                 http://stabby-proc.io
+paginate:            1
+baseurl:             ""
+safe: false
+
+# Assets
+#
+# We specify the directory for Jekyll so we can use @imports.
+sass:
+  sass_dir:          _sass
+  style:            :compressed
+
+# About/contact
+author:
+  name:              Matt Michnal
+  url:               https://twitter.com/mgm702
+  email:             mattm3646@gmail.com
+
+# Custom vars
+version:             2.0.0
+github:
+  repo:              https://github.com/mgm702/poole
+
+# Gems
+gems:
+  - jekyll-paginate
+  - jekyll-gist
+  - jekyll-email-protect
+  - jekyll-redirect-from
+  - jekyll-feed
+  - jemoji
+
+exclude: [Rakefile]
