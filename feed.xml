@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.1.6">Jekyll</generator><link href="http://stabby-proc.io/feed.xml" rel="self" type="application/atom+xml" /><link href="http://stabby-proc.io/" rel="alternate" type="text/html" /><updated>2016-08-22T21:14:06-06:00</updated><id>http://stabby-proc.io/</id><title>Stabby Proc</title><author><name>Matt Michnal</name><email>mattm3646@gmail.com</email></author><entry><title>Not Quite My Tempo - Testing OmniAuth with RSpec!</title><link href="http://stabby-proc.io/ruby/2016/06/21/test-omniauth-with-rspec/" rel="alternate" type="text/html" title="Not Quite My Tempo - Testing OmniAuth with RSpec!" /><published>2016-06-21T00:00:00-06:00</published><updated>2016-06-21T00:00:00-06:00</updated><id>http://stabby-proc.io/ruby/2016/06/21/test-omniauth-with-rspec</id><content type="html" xml:base="http://stabby-proc.io/ruby/2016/06/21/test-omniauth-with-rspec/">&lt;p&gt;I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.&lt;/p&gt;
+
+&lt;p&gt;I was using the RSpec and Capybara testing frameworks to test features and user behavior. I normally prefer MiniTest when choosing a testing framework, but hey if it’s not broke why fix it. Anyways, I was put in charge of both the OmniAuth functionality and the testing to make sure that they worked correctly. This is not an easy task because you’re basically simulating a successful sign into a third party platform, plus you have to return info back to your application.&lt;/p&gt;
+
+&lt;p&gt;So I began my search online to see if I could find a solution to this problem, however; I found it difficult to find exactly what I was looking for.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;not-tempo&quot;&gt;
+&lt;img src=&quot;http://googledrive.com/host/0BxsJHhL4DROdLTdPTVZIeFpzQWc/tempo.gif&quot; alt=&quot;tempo&quot; title=&quot;Not quite my tempo&quot; /&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Many solutions had close to what I was looking for, but often times they would be included just once in the test. Also, many examples were only RSpec specific, and that was a problem for me because I wanted a way to easily use OmniAuth anywhere inside the test suite with either RSpec or MiniTest. That is when I came to the conclusion that I could put a support module inside the test suite.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;OmniAuthMock&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt;
+    &lt;span class=&quot;kp&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Capybara&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;DSL&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+      &lt;span class=&quot;no&quot;&gt;Capybara&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;default_host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;http://127.0.0.1:3000&#39;&lt;/span&gt;
+      &lt;span class=&quot;no&quot;&gt;OmniAuth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;test_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;
+      &lt;span class=&quot;no&quot;&gt;OmniAuth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;mock_auth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:github&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;provider: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;github&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;uid: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;1234567&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;credentials: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;token: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;3kynje&#39;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;info: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;nickname: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;jtest&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;name: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Joe Test&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;email: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;email@email.com&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;image: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;jtest.jpg&#39;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;visit&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;auth/github&#39;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This module then can be used before tests or directly in them if need be. The reason this solution works for me is because it’s very DRY and I don’t have to write out the mock Omniauth module multiple times in the program. That make me :smile:&lt;/p&gt;
+
+&lt;p&gt;Here is an example of the module being used in a RSpec feature test before statement:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;before&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And here is an example of the module being directly used in a MiniTest test directly:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_authentication&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;assert_equal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Joe Test&quot;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I hope this helps anyone who’s out there looking for a nice DRY solution to OmniAuth testing.&lt;/p&gt;</content><author><name>Matt Michnal</name><email>mattm3646@gmail.com</email></author><summary>I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.</summary></entry></feed>
