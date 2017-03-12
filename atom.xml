@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
  <title>Stabby Proc</title>
- <link href="http://stabbyproc.github.io/atom.xml" rel="self"/>
- <link href="http://stabbyproc.github.io/"/>
- <updated>2017-03-12T15:15:03-06:00</updated>
- <id>http://stabbyproc.github.io</id>
+ <link href="http://stabbyproc.com/atom.xml" rel="self"/>
+ <link href="http://stabbyproc.com/"/>
+ <updated>2017-03-12T15:39:32-06:00</updated>
+ <id>http://stabbyproc.com</id>
  <author>
    <name>Matt Michnal</name>
    <email>mattm3646@gmail.com</email>
@@ -14,9 +14,9 @@
  
  <entry>
    <title>Tools I'm using to inspect CRuby source code</title>
-   <link href="http://stabbyproc.github.io/ruby/tools-being-used-for-c-ruby-inspection.html"/>
+   <link href="http://stabbyproc.com/ruby/tools-being-used-for-c-ruby-inspection.html"/>
    <updated>2017-02-17T00:00:00-07:00</updated>
-   <id>http://stabbyproc.github.io/ruby/tools-being-used-for-c-ruby-inspection</id>
+   <id>http://stabbyproc.com/ruby/tools-being-used-for-c-ruby-inspection</id>
    <content type="html">&lt;p&gt;This is a short post about the tools that I’m going to use to investigate methods in the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;. Hopefully using these same techniques, if you feel like it, you can follow along as you read through this &lt;a href=&quot;http://stabbyproc.com/tags#cruby&quot;&gt;series of posts&lt;/a&gt;. With better understanding of the tools that I’m going to be using, you will be better equipped to understand the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;span class=&quot;mr-miyagi&quot;&gt;
@@ -82,9 +82,9 @@
  
  <entry>
    <title>A Deep Dive Into CRuby Source Code, A Fun Experiment in Learning</title>
-   <link href="http://stabbyproc.github.io/ruby/intro-learning-c-through-ruby.html"/>
+   <link href="http://stabbyproc.com/ruby/intro-learning-c-through-ruby.html"/>
    <updated>2017-02-15T00:00:00-07:00</updated>
-   <id>http://stabbyproc.github.io/ruby/intro-learning-c-through-ruby</id>
+   <id>http://stabbyproc.com/ruby/intro-learning-c-through-ruby</id>
    <content type="html">&lt;p&gt;I’ve been working with a lot of C code lately and it’s amazing!&lt;/p&gt;
 
 &lt;div class=&quot;big-emoji&quot;&gt;
@@ -111,9 +111,9 @@
  
  <entry>
    <title>Creating a personal Git Server from Your Old Computer</title>
-   <link href="http://stabbyproc.github.io/ubuntu/personal-server-setup.html"/>
+   <link href="http://stabbyproc.com/ubuntu/personal-server-setup.html"/>
    <updated>2017-02-02T00:00:00-07:00</updated>
-   <id>http://stabbyproc.github.io/ubuntu/personal-server-setup</id>
+   <id>http://stabbyproc.com/ubuntu/personal-server-setup</id>
    <content type="html">&lt;p&gt;Recently, I’ve been looking for a new solution to hold my private git repositories. I know some people will say to use &lt;a href=&quot;https://bitbucket.org/&quot;&gt;Bitbucket&lt;/a&gt; or &lt;a href=&quot;https://about.gitlab.com/&quot;&gt;Gitlab&lt;/a&gt;, because they have free private repos and they’re amazing! And sure it’s true that they have great services that provide git management for you to use as you please, but the problem is that I wanted something that I could not only manage at the system level, but I  also wanted a solution that was independent and customizable. I debated the idea of using &lt;a href=&quot;https://www.digitalocean.com/&quot;&gt;Digital Ocean&lt;/a&gt;, &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;AWS&lt;/a&gt; or &lt;a href=&quot;https://www.heroku.com/&quot;&gt;Heroku&lt;/a&gt; to host my personal solution, but the money it would take to create a complete management tool made me think about how I could solve this problem while keeping my costs down. In addition to the price factor, a major point of emphasis for me was to have full control over the server and all of its components. Finally, my last goal with this server was to use &lt;a href=&quot;https://www.docker.com/&quot;&gt;Docker&lt;/a&gt; to create and manage my technology stack, so I wanted to create something on my own. Around this time I was cleaning out part of my house, and what do I happen to find but my old &lt;a href=&quot;https://www.amazon.com/Dell-15-6-Inch-Processor-Discontinued-Manufacturer/dp/B002PY7OSA&quot;&gt;Dell&lt;/a&gt; computer. This computer is nothing special but it does have the following specs:&lt;/p&gt;
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
@@ -147,9 +147,9 @@ Type:                  DDR2
  
  <entry>
    <title>How To Fix Permissions Issue In Vagrant</title>
-   <link href="http://stabbyproc.github.io/vagrant/how-to-fix-permissions-issue-in-vagrant.html"/>
+   <link href="http://stabbyproc.com/vagrant/how-to-fix-permissions-issue-in-vagrant.html"/>
    <updated>2016-07-25T00:00:00-06:00</updated>
-   <id>http://stabbyproc.github.io/vagrant/how-to-fix-permissions-issue-in-vagrant</id>
+   <id>http://stabbyproc.com/vagrant/how-to-fix-permissions-issue-in-vagrant</id>
    <content type="html">&lt;p&gt;While working for &lt;a href=&quot;http://www.aimmedia.com/&quot;&gt;Active Interest Media&lt;/a&gt;, I created a &lt;a href=&quot;https://www.vagrantup.com/&quot;&gt;Vagrant Box&lt;/a&gt; in order to help with on-boarding new developers. The goal was to create a specialized environment that, not only closely mimicked the company’s production environment on &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;Amazon Web Services&lt;/a&gt;, but also created a way for developers on different OS systems to quickly contribute to the codebase. Because many of the company’s developers worked on Windows and Unix machines, this was a major problem that I was looking to solve.&lt;/p&gt;
 
 &lt;p&gt;Most of the process was pretty straightforward and I was able to create a &lt;a href=&quot;https://en.wikipedia.org/wiki/LAMP_(software_bundle)&quot;&gt;LAMP stack box&lt;/a&gt; with a mixture of &lt;a href=&quot;https://www.chef.io/chef/&quot;&gt;Chef&lt;/a&gt; and bash commands. Everything was set up and working on different OS environments successfully, but when I tried a simple write process to one of our site’s files on the box, it froze.&lt;/p&gt;
@@ -176,9 +176,9 @@ Type:                  DDR2
  
  <entry>
    <title>Not Quite My Tempo - Testing OmniAuth with RSpec!</title>
-   <link href="http://stabbyproc.github.io/ruby/test-omniauth-with-rspec.html"/>
+   <link href="http://stabbyproc.com/ruby/test-omniauth-with-rspec.html"/>
    <updated>2016-06-21T00:00:00-06:00</updated>
-   <id>http://stabbyproc.github.io/ruby/test-omniauth-with-rspec</id>
+   <id>http://stabbyproc.com/ruby/test-omniauth-with-rspec</id>
    <content type="html">&lt;p&gt;I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.&lt;/p&gt;
 
 &lt;p&gt;I was using the RSpec and Capybara testing frameworks to test features and user behavior. I normally prefer MiniTest when choosing a testing framework, but hey if it’s not broke why fix it. Anyways, I was put in charge of both the OmniAuth functionality and the testing to make sure that they worked correctly. This is not an easy task because you’re basically simulating a successful sign into a third party platform, plus you have to return info back to your application.&lt;/p&gt;
