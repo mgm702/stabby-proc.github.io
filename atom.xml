@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
  <title>Stabby Proc</title>
- <link href="http://stabby-proc.io/atom.xml" rel="self"/>
- <link href="http://stabby-proc.io/"/>
- <updated>2016-08-22T21:27:55-06:00</updated>
- <id>http://stabby-proc.io</id>
+ <link href="http://stabbyproc.github.io/atom.xml" rel="self"/>
+ <link href="http://stabbyproc.github.io/"/>
+ <updated>2017-03-12T15:15:03-06:00</updated>
+ <id>http://stabbyproc.github.io</id>
  <author>
    <name>Matt Michnal</name>
    <email>mattm3646@gmail.com</email>
@@ -13,58 +13,218 @@
 
  
  <entry>
+   <title>Tools I'm using to inspect CRuby source code</title>
+   <link href="http://stabbyproc.github.io/ruby/tools-being-used-for-c-ruby-inspection.html"/>
+   <updated>2017-02-17T00:00:00-07:00</updated>
+   <id>http://stabbyproc.github.io/ruby/tools-being-used-for-c-ruby-inspection</id>
+   <content type="html">&lt;p&gt;This is a short post about the tools that I’m going to use to investigate methods in the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;. Hopefully using these same techniques, if you feel like it, you can follow along as you read through this &lt;a href=&quot;http://stabbyproc.com/tags#cruby&quot;&gt;series of posts&lt;/a&gt;. With better understanding of the tools that I’m going to be using, you will be better equipped to understand the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;mr-miyagi&quot;&gt;
+  &lt;img src=&quot;http://i.giphy.com/s2Llqyba674pW.gif&quot; /&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;The main tool that I’m going to talk about is &lt;a href=&quot;http://pryrepl.org/&quot;&gt;Pry&lt;/a&gt;. Many developers already know about this tool, especially if you work in Ruby codebases frequently. It’s often used as a &lt;a href=&quot;https://learn.co/lessons/debugging-with-pry&quot;&gt;runtime debugger&lt;/a&gt; and it’s an amazing tool for taking apart your stack trace method by method until you’ve found the source of your problems. However, the part of &lt;a href=&quot;http://pryrepl.org&quot;&gt;Pry&lt;/a&gt; that I’m going to talk about is the less recognized part of the gem which is the &lt;a href=&quot;https://github.com/pry/pry/wiki/Source-browsing&quot;&gt;show-source&lt;/a&gt; method found inside the &lt;a href=&quot;https://www.sitepoint.com/rubyists-time-pry-irb/&quot;&gt;Pry REPL console&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Pry not only can be used as a &lt;a href=&quot;https://learn.co/lessons/debugging-with-pry&quot;&gt;powerful Ruby debugging tool&lt;/a&gt;, it can also be used to bring up CRuby source code methods that power the language methods being used. This feature is one of my favorite parts about Pry; however, when I talk to other developers about this functionality, they often times have had very little experience actually using the tool.&lt;/p&gt;
+
+&lt;div class=&quot;big-emoji&quot;&gt;
+:fearful:
+&lt;/div&gt;
+
+&lt;p&gt;In order to use Pry’s &lt;a href=&quot;https://github.com/pry/pry/wiki/Source-browsing&quot;&gt;show-source&lt;/a&gt; method, the heart of our inspection process, we need to use the Pry REPL instance. In order to get this set up we first must install the pry gem to our system:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gem install pry&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Now that pry is installed it’s possible to open the Pry REPL console by simply typing &lt;code class=&quot;highlighter-rouge&quot;&gt;pry&lt;/code&gt; into your terminal. The instance that opens is similar to the traditional IRB REPL console that comes with Ruby; however this instance provides Pry specific functions that help with the inspection of CRuby code, particularly the &lt;a href=&quot;https://github.com/pry/pry/wiki/Source-browsing&quot;&gt;show-source&lt;/a&gt; function. The basics of using the &lt;a href=&quot;https://github.com/pry/pry/wiki/Source-browsing&quot;&gt;show-source&lt;/a&gt; function are pretty simple, just enter &lt;code class=&quot;highlighter-rouge&quot;&gt;show-source&lt;/code&gt; followed by the Class and the method that you’re looking to find. An example of this is shown below looking for the &lt;a href=&quot;https://ruby-doc.org/core-2.4.0/String.html#method-i-scan&quot;&gt;String#scan&lt;/a&gt; method.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pry&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scan&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;From&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;C&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Owner&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Visibility&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;public&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Number&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;of&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lines&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;31&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;rb_str_scan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RSTRING_PTR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RSTRING_LEN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;get_pat_quoted&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;mustnot_broken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rb_block_given_p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ary&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rb_ary_new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NIL_P&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scan_once&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;rb_ary_push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rb_pat_search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NIL_P&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scan_once&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;rb_yield&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;str_mod_check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;last&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;rb_pat_search&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;last&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This example provides us with a basic idea of how the C source code method is setup in Ruby; however in order to fully understand this method and all of the data structures and methods that go with it, we need to open up CRuby files and inspect them for ourselves. In addition to opening these files, we need a way to index those methods and data structures so that we can easily jump back and forth between method and structure defintions to better understand the underlying CRuby source code. To accomplish this, I’ll be using &lt;a href=&quot;https://github.com/postmodern/ruby-install&quot;&gt;ruby-install&lt;/a&gt;, &lt;a href=&quot;https://github.com/postmodern/chruby&quot;&gt;chruby&lt;/a&gt;, and &lt;a href=&quot;http://ctags.sourceforge.net/&quot;&gt;ctags&lt;/a&gt; to load, organize, and index my Ruby source code for inspection. Hopefully this post was able to give you an idea of how I plan on looking through the CRuby source code. If you feel inclined you can now join along as I start my journey with my favorite data structure in programming, the Array.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>A Deep Dive Into CRuby Source Code, A Fun Experiment in Learning</title>
+   <link href="http://stabbyproc.github.io/ruby/intro-learning-c-through-ruby.html"/>
+   <updated>2017-02-15T00:00:00-07:00</updated>
+   <id>http://stabbyproc.github.io/ruby/intro-learning-c-through-ruby</id>
+   <content type="html">&lt;p&gt;I’ve been working with a lot of C code lately and it’s amazing!&lt;/p&gt;
+
+&lt;div class=&quot;big-emoji&quot;&gt;
+ :scream:
+&lt;/div&gt;
+
+&lt;p&gt;I started with the modest goal of learning to read the &lt;a href=&quot;http://ruby-doc.org/core-2.4.0/GC.html&quot;&gt;garbage collector code in CRuby&lt;/a&gt; and it spiraled out of control from there. So many projects are built on top of C. It’s one of those programming languages that’s hard to avoid, especially if you’re working on system level software such as &lt;a href=&quot;https://redis.io/&quot;&gt;Redis&lt;/a&gt;, or my favorite tool of all &lt;a href=&quot;http://www.vim.org/&quot;&gt;Vim&lt;/a&gt;. Since that’s the kind of code I like to create, I felt what better time to start learning how to program in C.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;cat-dog&quot;&gt;
+  &lt;img src=&quot;http://i.giphy.com/RGCRb4qZ1zA6A.gif&quot; /&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;So a little background on me before I begin. During my last year and a half of college, I took &lt;a href=&quot;http://www.cplusplus.com/&quot;&gt;C++&lt;/a&gt; programming courses. They were some of the toughest classes that I’d ever taken, but I learned a lot of the practices of coding that I still try to follow today. Having this knowledge in &lt;a href=&quot;http://www.cplusplus.com/&quot;&gt;C++&lt;/a&gt; definitely helped me learn how to program in C, since the only noticeable difference between the two is the function-driven vs. object-driven nature of each language. Now I know that all of the language purists will probably read this and complain because there are other differences between the two languages, but I’m just pointing out the most noticeable difference between the two. Since I mostly work in Ruby, I felt comfortable working in Object Oriented code architecture, so I was excited to try something new, and with C code I was that much closer to actually communicating with the machine.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;beavis-computer&quot;&gt;
+  &lt;img src=&quot;http://i.giphy.com/MF1kR4YmC2Z20.gif&quot; /&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;I dove head first into &lt;a href=&quot;http://mgm702.com/books&quot;&gt;reading books about C programming&lt;/a&gt; to learn the best practices of the language. All of this was fascinating and I learned so much about how C has influenced so many programming languages, and how it still remains a powerful language for creating software after all of these years. The biggest pain points in learning C was wrapping my head around pointers again and using them more than ever to move and shape data in my code. A good resource that I found that helped me with many of the subtleties of using pointers was &lt;a href=&quot;http://amzn.to/2mReVzT&quot;&gt;Understanding and Using C Pointers&lt;/a&gt;. This book was incredibly helpful with learning &lt;a href=&quot;https://www.quora.com/What-are-the-different-types-of-C-pointers&quot;&gt;double and dangling pointers&lt;/a&gt;, both of which I had struggled with before finding this resource. After finishing &lt;a href=&quot;http://amzn.to/2mReVzT&quot;&gt;Understanding and Using C Pointers&lt;/a&gt; it was time to try to solidify the knowledge that I had recently acquired, but how could I do that?&lt;/p&gt;
+
+&lt;p&gt;I decided to turn to the original reason that I started learning C code in the first place, to understand the &lt;a href=&quot;http://ruby-doc.org/core-2.4.0/GC.html&quot;&gt;MRI garbage collector source code&lt;/a&gt;. This time however, I have bigger ambitions than just understanding &lt;a href=&quot;http://ruby-doc.org/core-2.4.0/GC.html&quot;&gt;Ruby’s GC code&lt;/a&gt;. I now can use my better understanding of C code to help me better grasp the underlying concepts that make up the Ruby programming language. Therefore, in this series of posts, I will describe different methods in Ruby and how they work underneath the surface using C code. Some of it will be simple concepts used to illustrate C’s influence on the Ruby language and some of them will be more complex in order to try and understand the lower level methods that help make Ruby the amazing programming language it is today.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Creating a personal Git Server from Your Old Computer</title>
+   <link href="http://stabbyproc.github.io/ubuntu/personal-server-setup.html"/>
+   <updated>2017-02-02T00:00:00-07:00</updated>
+   <id>http://stabbyproc.github.io/ubuntu/personal-server-setup</id>
+   <content type="html">&lt;p&gt;Recently, I’ve been looking for a new solution to hold my private git repositories. I know some people will say to use &lt;a href=&quot;https://bitbucket.org/&quot;&gt;Bitbucket&lt;/a&gt; or &lt;a href=&quot;https://about.gitlab.com/&quot;&gt;Gitlab&lt;/a&gt;, because they have free private repos and they’re amazing! And sure it’s true that they have great services that provide git management for you to use as you please, but the problem is that I wanted something that I could not only manage at the system level, but I  also wanted a solution that was independent and customizable. I debated the idea of using &lt;a href=&quot;https://www.digitalocean.com/&quot;&gt;Digital Ocean&lt;/a&gt;, &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;AWS&lt;/a&gt; or &lt;a href=&quot;https://www.heroku.com/&quot;&gt;Heroku&lt;/a&gt; to host my personal solution, but the money it would take to create a complete management tool made me think about how I could solve this problem while keeping my costs down. In addition to the price factor, a major point of emphasis for me was to have full control over the server and all of its components. Finally, my last goal with this server was to use &lt;a href=&quot;https://www.docker.com/&quot;&gt;Docker&lt;/a&gt; to create and manage my technology stack, so I wanted to create something on my own. Around this time I was cleaning out part of my house, and what do I happen to find but my old &lt;a href=&quot;https://www.amazon.com/Dell-15-6-Inch-Processor-Discontinued-Manufacturer/dp/B002PY7OSA&quot;&gt;Dell&lt;/a&gt; computer. This computer is nothing special but it does have the following specs:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+Architecture:          x86_64
+CPU(s):                2
+Model name:            Intel(R) Core(TM)2 Duo CPU     T6600  @ 2.20GHz
+HDD:                   320GB
+RAM:                   4096MB
+Type:                  DDR2
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Definitely not anything I would brag about or use for my primary development machine, but it still has value to me, and I didn’t want to get rid of it just yet. So I thought to myself, why not try an older approach and configure my own home server that can run on &lt;a href=&quot;https://www.docker.com&quot;&gt;Docker&lt;/a&gt; and use the &lt;a href=&quot;https://about.gitlab.com/&quot;&gt;Gitlab CE&lt;/a&gt; open source tool to manage my git repos? I could also create other small utility sites that would turn this once dust collecting relic into a fully functional system that my family and I could use for our storage needs. I began thinking about what exactly I wanted on this home server of mine.&lt;/p&gt;
+
+&lt;p&gt;I wanted to use a Linux server setup that was stable and could get up and running relatively quickly. I decided to use an Ubuntu Server version 16.04 image. I wanted to use the latest version of the distro, and I wanted to make sure that &lt;a href=&quot;https://www.docker.com&quot;&gt;Docker&lt;/a&gt; was the main focus of tool management on the server. However, I also wanted the availability and familiarity of an Ubuntu server, since it’s the distro I’m most comfortable with. I could’ve went with &lt;a href=&quot;https://www.debian.org/&quot;&gt;Debian&lt;/a&gt; as well, but for now I decided on &lt;a href=&quot;https://www.ubuntu.com/&quot;&gt;Ubuntu&lt;/a&gt;. In the future, as I get better with &lt;a href=&quot;https://www.docker.com&quot;&gt;Docker&lt;/a&gt; I will probably move to &lt;a href=&quot;https://coreos.com/&quot;&gt;CoreOS&lt;/a&gt; since it’s size is &lt;a href=&quot;https://thenewstack.io/digital-ocean-now-supports-coreos-the-lightweight-linux-distro-for-hosting-docker-containers/&quot;&gt;1/4&lt;/a&gt; that of a normal Linux distro. Also, &lt;a href=&quot;https://www.coreos.com&quot;&gt;CoreOS&lt;/a&gt; provides tools that assist in managing multiple server container systems at once. This might be useful if my girlfriend ever decides to give up her old Macbook for the good of our server farm :joy:.&lt;/p&gt;
+
+&lt;p&gt;The technology stack that I want to use on this server varies since I plan to use the server as a small project test space, in addition to it’s use as a git repository management tool and media client server. However, the main technology I’ll be focusing on is the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://rubyonrails.org/&quot;&gt;Ruby/Rails&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://puma.io/&quot;&gt;Puma Server&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.sinatrarb.com/&quot;&gt;Sinatra (small API apps)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.nginx.com/&quot;&gt;Nginx&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.postgresql.org/&quot;&gt;PostgreSQL&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;After sorting out all of the configurations that I wanted setup in my head, I was finally ready to start developing this server. With any good project though, I needed to first test everything to make sure it was going to work the way I expected it to. This is when I decided to turn to one of my favorite development tools, &lt;a href=&quot;https://www.virtualbox.org/&quot;&gt;Virtualbox&lt;/a&gt;. I’ll talk more about that though in the next post, but that’s all for right now.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>How To Fix Permissions Issue In Vagrant</title>
+   <link href="http://stabbyproc.github.io/vagrant/how-to-fix-permissions-issue-in-vagrant.html"/>
+   <updated>2016-07-25T00:00:00-06:00</updated>
+   <id>http://stabbyproc.github.io/vagrant/how-to-fix-permissions-issue-in-vagrant</id>
+   <content type="html">&lt;p&gt;While working for &lt;a href=&quot;http://www.aimmedia.com/&quot;&gt;Active Interest Media&lt;/a&gt;, I created a &lt;a href=&quot;https://www.vagrantup.com/&quot;&gt;Vagrant Box&lt;/a&gt; in order to help with on-boarding new developers. The goal was to create a specialized environment that, not only closely mimicked the company’s production environment on &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;Amazon Web Services&lt;/a&gt;, but also created a way for developers on different OS systems to quickly contribute to the codebase. Because many of the company’s developers worked on Windows and Unix machines, this was a major problem that I was looking to solve.&lt;/p&gt;
+
+&lt;p&gt;Most of the process was pretty straightforward and I was able to create a &lt;a href=&quot;https://en.wikipedia.org/wiki/LAMP_(software_bundle)&quot;&gt;LAMP stack box&lt;/a&gt; with a mixture of &lt;a href=&quot;https://www.chef.io/chef/&quot;&gt;Chef&lt;/a&gt; and bash commands. Everything was set up and working on different OS environments successfully, but when I tried a simple write process to one of our site’s files on the box, it froze.&lt;/p&gt;
+
+&lt;div class=&quot;big-emoji&quot;&gt;
+:flushed:
+&lt;/div&gt;
+
+&lt;p&gt;Why won’t it write to the system, what’s wrong with my perfect Vagrant box? After a little bit of poking around inside the virtual machine, I was able to conclude that the &lt;a href=&quot;https://httpd.apache.org/&quot;&gt;Apache&lt;/a&gt; web root directory, which holds the servable websites on the system, needed to be owned by the &lt;a href=&quot;http://fideloper.com/user-group-permissions-chmod-apache&quot;&gt;www-data group&lt;/a&gt;. I made the changes to the directory on the virtual machine and thought that I had fixed the issue; however, once again, I went to write to the file on the server, and again I was denied.&lt;/p&gt;
+
+&lt;p&gt;&lt;span class=&quot;jurassic-park&quot;&gt;
+&lt;img src=&quot;http://i.imgur.com/pwg9kid.gif&quot; /&gt;
+&lt;/span&gt;&lt;/p&gt;
+
+&lt;p&gt;Why won’t this work, it can’t be the same issue again can it? Sure enough the box had reverted the read/write access to the vagrant user and I was back to square one.&lt;/p&gt;
+
+&lt;p&gt;So I dove back into researching this problem, and I found that read/write permissions for the directory could be controlled inside the Vagrantfile. I made the following changes to the file:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;vm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;synced_folder&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;./sites&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/var/www&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:group&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;www-data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;ss&quot;&gt;:mount_options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'dmode=775'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'fmode=664'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;After these changes, the server was finally running the way I wanted it to. To me this was a lesson in perseverance and testing the changes you assume fix the issue. Hopefully this lesson will save someone else time and effort down the road!&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
    <title>Not Quite My Tempo - Testing OmniAuth with RSpec!</title>
-   <link href="http://stabby-proc.io/ruby/2016/06/21/test-omniauth-with-rspec/"/>
+   <link href="http://stabbyproc.github.io/ruby/test-omniauth-with-rspec.html"/>
    <updated>2016-06-21T00:00:00-06:00</updated>
-   <id>http://stabby-proc.io/ruby/2016/06/21/test-omniauth-with-rspec</id>
+   <id>http://stabbyproc.github.io/ruby/test-omniauth-with-rspec</id>
    <content type="html">&lt;p&gt;I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.&lt;/p&gt;
 
 &lt;p&gt;I was using the RSpec and Capybara testing frameworks to test features and user behavior. I normally prefer MiniTest when choosing a testing framework, but hey if it’s not broke why fix it. Anyways, I was put in charge of both the OmniAuth functionality and the testing to make sure that they worked correctly. This is not an easy task because you’re basically simulating a successful sign into a third party platform, plus you have to return info back to your application.&lt;/p&gt;
 
-&lt;p&gt;So I began my search online to see if I could find a solution to this problem, however; I found it difficult to find exactly what I was looking for.&lt;/p&gt;
-
-&lt;p&gt;&lt;span class=&quot;not-tempo&quot;&gt;
-&lt;img src=&quot;http://googledrive.com/host/0BxsJHhL4DROdLTdPTVZIeFpzQWc/tempo.gif&quot; alt=&quot;tempo&quot; title=&quot;Not quite my tempo&quot; /&gt;
-&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;Many solutions had close to what I was looking for, but often times they would be included just once in the test. Also, many examples were only RSpec specific, and that was a problem for me because I wanted a way to easily use OmniAuth anywhere inside the test suite with either RSpec or MiniTest. That is when I came to the conclusion that I could put a support module inside the test suite.&lt;/p&gt;
+&lt;p&gt;So I began my search online to see if I could find a solution to this problem, however; I found it difficult to find exactly what I was looking for.
+&lt;span class=&quot;not-tempo&quot;&gt;
+&lt;img src=&quot;https://i.imgur.com/35r8qKs.gif&quot; /&gt;
+&lt;/span&gt;
+Many solutions had close to what I was looking for, but often times they would be included just once in the test. Also, many examples were only RSpec specific, and that was a problem for me because I wanted a way to easily use OmniAuth anywhere inside the test suite with either RSpec or MiniTest. That is when I came to the conclusion that I could put a support module inside the test suite.&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;&lt;span class=&quot;k&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;OmniAuthMock&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt;
     &lt;span class=&quot;kp&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Capybara&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;DSL&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
-      &lt;span class=&quot;no&quot;&gt;Capybara&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;default_host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;http://127.0.0.1:3000&#39;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+      &lt;span class=&quot;no&quot;&gt;Capybara&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;default_host&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'http://127.0.0.1:3000'&lt;/span&gt;
       &lt;span class=&quot;no&quot;&gt;OmniAuth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;test_mode&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kp&quot;&gt;true&lt;/span&gt;
       &lt;span class=&quot;no&quot;&gt;OmniAuth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;mock_auth&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:github&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;ss&quot;&gt;provider: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;github&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;ss&quot;&gt;uid: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;1234567&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;provider: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'github'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+        &lt;span class=&quot;ss&quot;&gt;uid: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'1234567'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
         &lt;span class=&quot;ss&quot;&gt;credentials: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;ss&quot;&gt;token: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;3kynje&#39;&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;token: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'3kynje'&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
         &lt;span class=&quot;ss&quot;&gt;info: &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-          &lt;span class=&quot;ss&quot;&gt;nickname: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;jtest&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-          &lt;span class=&quot;ss&quot;&gt;name: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;Joe Test&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-          &lt;span class=&quot;ss&quot;&gt;email: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;email@email.com&#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-          &lt;span class=&quot;ss&quot;&gt;image: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&#39;jtest.jpg&#39;&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;nickname: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'jtest'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;name: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Joe Test'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;email: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'email@email.com'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+          &lt;span class=&quot;ss&quot;&gt;image: &lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'jtest.jpg'&lt;/span&gt;
         &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
       &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;visit&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&#39;auth/github&#39;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;visit&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'auth/github'&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;This module then can be used before tests or directly in them if need be. The reason this solution works for me is because it’s very DRY and I don’t have to write out the mock Omniauth module multiple times in the program. That make me :smile:&lt;/p&gt;
+&lt;p&gt;This class method then can be used before tests or directly in them if need be. The reason this solution works for me is because it’s very DRY and I don’t have to write out the mock Omniauth object multiple times in the program. That make me :smile:&lt;/p&gt;
 
-&lt;p&gt;Here is an example of the module being used in a RSpec feature test before statement:&lt;/p&gt;
+&lt;p&gt;Here is an example of the class method being used in a RSpec feature test before statement:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;n&quot;&gt;before&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
-    &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+    &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;And here is an example of the module being directly used in a MiniTest test directly:&lt;/p&gt;
+&lt;p&gt;And here is an example of the class method being directly used in a MiniTest test directly:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-ruby&quot; data-lang=&quot;ruby&quot;&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_authentication&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;OmniAuthMock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;current_user&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;assert_equal&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Joe Test&quot;&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 

@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body><default html>
+
+    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Not Quite My Tempo - Testing OmniAuth with RSpec! · Stabby Proc
+    
+  </title>
+
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Inconsolata:700" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/master/devicon.min.css">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico" type="image/x-icon">
+  <link rel="alternate" type="application/atom+xml" title="Stabby Proc" href="/atom.xml">
+
+
+  
+    <div class="container content">
+      <header class="masthead">
+        <h2 class="masthead-title">
+          <a href="/" title="Home">
+            <img src="/public/stabby-proc-logo-title.png">
+          </a>
+        </h2>
+        <span class="tagline">- "Taking a stab at this thing called blogging!"</span>
+      </header>
+
+      <main>
+      <article class="post">
+  <h1 class="post-title">Not Quite My Tempo - Testing OmniAuth with RSpec!</h1>
+    <sub class="article-date">Jun-21-2016</sub>
+    <div class="post-tags-list">
+    
+    </div>
+    <p>I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.</p>
+
+<p>I was using the RSpec and Capybara testing frameworks to test features and user behavior. I normally prefer MiniTest when choosing a testing framework, but hey if it’s not broke why fix it. Anyways, I was put in charge of both the OmniAuth functionality and the testing to make sure that they worked correctly. This is not an easy task because you’re basically simulating a successful sign into a third party platform, plus you have to return info back to your application.</p>
+
+<p>So I began my search online to see if I could find a solution to this problem, however; I found it difficult to find exactly what I was looking for.
+<span class="not-tempo">
+<img src="https://i.imgur.com/35r8qKs.gif">
+</span>
+Many solutions had close to what I was looking for, but often times they would be included just once in the test. Also, many examples were only RSpec specific, and that was a problem for me because I wanted a way to easily use OmniAuth anywhere inside the test suite with either RSpec or MiniTest. That is when I came to the conclusion that I could put a support module inside the test suite.</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">module</span> <span class="nn">OmniAuthMock</span>
+  <span class="k">class</span> <span class="nc">User</span>
+    <span class="kp">include</span> <span class="no">Capybara</span><span class="o">::</span><span class="no">DSL</span>
+    <span class="k">def</span> <span class="nc">User</span><span class="o">.</span><span class="nf">current_user</span>
+      <span class="no">Capybara</span><span class="p">.</span><span class="nf">default_host</span> <span class="o">=</span> <span class="s1">'http://127.0.0.1:3000'</span>
+      <span class="no">OmniAuth</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">test_mode</span> <span class="o">=</span> <span class="kp">true</span>
+      <span class="no">OmniAuth</span><span class="p">.</span><span class="nf">config</span><span class="p">.</span><span class="nf">mock_auth</span><span class="p">[</span><span class="ss">:github</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="ss">provider: </span><span class="s1">'github'</span><span class="p">,</span>
+        <span class="ss">uid: </span><span class="s1">'1234567'</span><span class="p">,</span>
+        <span class="ss">credentials: </span><span class="p">{</span>
+          <span class="ss">token: </span><span class="s1">'3kynje'</span>
+        <span class="p">},</span>
+        <span class="ss">info: </span><span class="p">{</span>
+          <span class="ss">nickname: </span><span class="s1">'jtest'</span><span class="p">,</span>
+          <span class="ss">name: </span><span class="s1">'Joe Test'</span><span class="p">,</span>
+          <span class="ss">email: </span><span class="s1">'email@email.com'</span><span class="p">,</span>
+          <span class="ss">image: </span><span class="s1">'jtest.jpg'</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="n">visit</span> <span class="s1">'auth/github'</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span></code></pre></figure>
+
+<p>This class method then can be used before tests or directly in them if need be. The reason this solution works for me is because it’s very DRY and I don’t have to write out the mock Omniauth object multiple times in the program. That make me <img class="emoji" title=":smile:" alt=":smile:" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f604.png" height="20" width="20" align="absmiddle"></p>
+
+<p>Here is an example of the class method being used in a RSpec feature test before statement:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">  <span class="n">before</span> <span class="k">do</span>
+    <span class="no">OmniAuthMock</span><span class="o">::</span><span class="no">User</span><span class="p">.</span><span class="nf">current_user</span>
+  <span class="k">end</span></code></pre></figure>
+
+<p>And here is an example of the class method being directly used in a MiniTest test directly:</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby">  <span class="k">def</span> <span class="nf">test_authentication</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="no">OmniAuthMock</span><span class="o">::</span><span class="no">User</span><span class="p">.</span><span class="nf">current_user</span>
+    <span class="n">assert_equal</span> <span class="n">user</span><span class="p">.</span><span class="nf">name</span><span class="p">,</span> <span class="s2">"Joe Test"</span>
+  <span class="k">end</span></code></pre></figure>
+
+<p>I hope this helps anyone who’s out there looking for a nice DRY solution to OmniAuth testing.</p>
+
+    <a class="twitter-follow-button" href="https://twitter.com/mgm702" data-show-count="false">Follow @mgm702</a>
+</article>
+
+
+<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'stabbyproccom'; // required: replace example with your forum shortname
+        var disqus_developer = 1; // Comment out when the site is live
+        var disqus_identifier = "/ruby/test-omniauth-with-rspec.html";
+
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </main>
+
+      <footer class="footer">
+  <ul class="category-list">
+    <li class="category-list">
+      <a href="/categories#ruby">Ruby</a>
+      <a href="/categories#ubuntu">Ubuntu</a>
+      <a href="/categories#vagrant">Vagrant</a>
+    </li>
+  </ul>
+  <ul class="archive-list">
+    <li class="archive-link">
+      <a href="/about">About</a>
+      <a href="/archive">Archive</a>
+    </li>
+  </ul>
+
+  <br>
+  <div class="footer-copyright">
+    <small>
+    © <time datetime="2017-03-12T15:15:03-06:00">2017</time> StabbyProc.com All rights reserved.
+    </small>
+  </div>
+</footer>
+
+<script src="/js/twitter.js" type="text/javascript"></script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-83001023-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    </div>
+
+  
+
+</default></body></html>

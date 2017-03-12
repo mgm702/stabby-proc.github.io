@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body><default html>
+
+    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Tools I'm using to inspect CRuby source code · Stabby Proc
+    
+  </title>
+
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Inconsolata:700" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/master/devicon.min.css">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico" type="image/x-icon">
+  <link rel="alternate" type="application/atom+xml" title="Stabby Proc" href="/atom.xml">
+
+
+  
+    <div class="container content">
+      <header class="masthead">
+        <h2 class="masthead-title">
+          <a href="/" title="Home">
+            <img src="/public/stabby-proc-logo-title.png">
+          </a>
+        </h2>
+        <span class="tagline">- "Taking a stab at this thing called blogging!"</span>
+      </header>
+
+      <main>
+      <article class="post">
+  <h1 class="post-title">Tools I'm using to inspect CRuby source code</h1>
+    <sub class="article-date">Feb-17-2017</sub>
+    <div class="post-tags-list">
+    
+    <a href="http://stabbyproc.github.io/tags#cruby" class="post-tag">cruby</a>
+    
+    <a href="http://stabbyproc.github.io/tags#ruby-tools" class="post-tag">ruby-tools</a>
+    
+    </div>
+    <p>This is a short post about the tools that I’m going to use to investigate methods in the <a href="http://ruby-doc.org/">CRuby source code</a>. Hopefully using these same techniques, if you feel like it, you can follow along as you read through this <a href="http://stabbyproc.com/tags#cruby">series of posts</a>. With better understanding of the tools that I’m going to be using, you will be better equipped to understand the <a href="http://ruby-doc.org/">CRuby source code</a>.</p>
+
+<p><span class="mr-miyagi">
+  <img src="http://i.giphy.com/s2Llqyba674pW.gif">
+</span></p>
+
+<p>The main tool that I’m going to talk about is <a href="http://pryrepl.org/">Pry</a>. Many developers already know about this tool, especially if you work in Ruby codebases frequently. It’s often used as a <a href="https://learn.co/lessons/debugging-with-pry">runtime debugger</a> and it’s an amazing tool for taking apart your stack trace method by method until you’ve found the source of your problems. However, the part of <a href="http://pryrepl.org">Pry</a> that I’m going to talk about is the less recognized part of the gem which is the <a href="https://github.com/pry/pry/wiki/Source-browsing">show-source</a> method found inside the <a href="https://www.sitepoint.com/rubyists-time-pry-irb/">Pry REPL console</a>.</p>
+
+<p>Pry not only can be used as a <a href="https://learn.co/lessons/debugging-with-pry">powerful Ruby debugging tool</a>, it can also be used to bring up CRuby source code methods that power the language methods being used. This feature is one of my favorite parts about Pry; however, when I talk to other developers about this functionality, they often times have had very little experience actually using the tool.</p>
+
+<div class="big-emoji">
+<img class="emoji" title=":fearful:" alt=":fearful:" src="https://assets-cdn.github.com/images/icons/emoji/unicode/1f628.png" height="20" width="20" align="absmiddle">
+</div>
+
+<p>In order to use Pry’s <a href="https://github.com/pry/pry/wiki/Source-browsing">show-source</a> method, the heart of our inspection process, we need to use the Pry REPL instance. In order to get this set up we first must install the pry gem to our system:</p>
+
+<p><code class="highlighter-rouge">gem install pry</code></p>
+
+<p>Now that pry is installed it’s possible to open the Pry REPL console by simply typing <code class="highlighter-rouge">pry</code> into your terminal. The instance that opens is similar to the traditional IRB REPL console that comes with Ruby; however this instance provides Pry specific functions that help with the inspection of CRuby code, particularly the <a href="https://github.com/pry/pry/wiki/Source-browsing">show-source</a> function. The basics of using the <a href="https://github.com/pry/pry/wiki/Source-browsing">show-source</a> function are pretty simple, just enter <code class="highlighter-rouge">show-source</code> followed by the Class and the method that you’re looking to find. An example of this is shown below looking for the <a href="https://ruby-doc.org/core-2.4.0/String.html#method-i-scan">String#scan</a> method.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">show</span><span class="o">-</span><span class="n">source</span> <span class="n">String</span><span class="err">#</span><span class="n">scan</span>
+
+<span class="n">From</span><span class="o">:</span> <span class="n">string</span><span class="p">.</span><span class="n">c</span> <span class="p">(</span><span class="n">C</span> <span class="n">Method</span><span class="p">)</span><span class="o">:</span>
+<span class="n">Owner</span><span class="o">:</span> <span class="n">String</span>
+<span class="n">Visibility</span><span class="o">:</span> <span class="n">public</span>
+<span class="n">Number</span> <span class="n">of</span> <span class="n">lines</span><span class="o">:</span> <span class="mi">31</span>
+
+<span class="k">static</span> <span class="n">VALUE</span>
+<span class="n">rb_str_scan</span><span class="p">(</span><span class="n">VALUE</span> <span class="n">str</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">pat</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">VALUE</span> <span class="n">result</span><span class="p">;</span>
+    <span class="kt">long</span> <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kt">long</span> <span class="n">last</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">prev</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">RSTRING_PTR</span><span class="p">(</span><span class="n">str</span><span class="p">);</span> <span class="kt">long</span> <span class="n">len</span> <span class="o">=</span> <span class="n">RSTRING_LEN</span><span class="p">(</span><span class="n">str</span><span class="p">);</span>
+
+    <span class="n">pat</span> <span class="o">=</span> <span class="n">get_pat_quoted</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">mustnot_broken</span><span class="p">(</span><span class="n">str</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">rb_block_given_p</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">VALUE</span> <span class="n">ary</span> <span class="o">=</span> <span class="n">rb_ary_new</span><span class="p">();</span>
+
+        <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">NIL_P</span><span class="p">(</span><span class="n">result</span> <span class="o">=</span> <span class="n">scan_once</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start</span><span class="p">)))</span> <span class="p">{</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="n">prev</span><span class="p">;</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+            <span class="n">rb_ary_push</span><span class="p">(</span><span class="n">ary</span><span class="p">,</span> <span class="n">result</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">last</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">rb_pat_search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">str</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">ary</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">NIL_P</span><span class="p">(</span><span class="n">result</span> <span class="o">=</span> <span class="n">scan_once</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="n">pat</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">start</span><span class="p">)))</span> <span class="p">{</span>
+        <span class="n">last</span> <span class="o">=</span> <span class="n">prev</span><span class="p">;</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="n">start</span><span class="p">;</span>
+        <span class="n">rb_yield</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>
+        <span class="n">str_mod_check</span><span class="p">(</span><span class="n">str</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">last</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="n">rb_pat_search</span><span class="p">(</span><span class="n">pat</span><span class="p">,</span> <span class="n">str</span><span class="p">,</span> <span class="n">last</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">str</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This example provides us with a basic idea of how the C source code method is setup in Ruby; however in order to fully understand this method and all of the data structures and methods that go with it, we need to open up CRuby files and inspect them for ourselves. In addition to opening these files, we need a way to index those methods and data structures so that we can easily jump back and forth between method and structure defintions to better understand the underlying CRuby source code. To accomplish this, I’ll be using <a href="https://github.com/postmodern/ruby-install">ruby-install</a>, <a href="https://github.com/postmodern/chruby">chruby</a>, and <a href="http://ctags.sourceforge.net/">ctags</a> to load, organize, and index my Ruby source code for inspection. Hopefully this post was able to give you an idea of how I plan on looking through the CRuby source code. If you feel inclined you can now join along as I start my journey with my favorite data structure in programming, the Array.</p>
+
+    <a class="twitter-follow-button" href="https://twitter.com/mgm702" data-show-count="false">Follow @mgm702</a>
+</article>
+
+
+<div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'stabbyproccom'; // required: replace example with your forum shortname
+        var disqus_developer = 1; // Comment out when the site is live
+        var disqus_identifier = "/ruby/tools-being-used-for-c-ruby-inspection.html";
+
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </main>
+
+      <footer class="footer">
+  <ul class="category-list">
+    <li class="category-list">
+      <a href="/categories#ruby">Ruby</a>
+      <a href="/categories#ubuntu">Ubuntu</a>
+      <a href="/categories#vagrant">Vagrant</a>
+    </li>
+  </ul>
+  <ul class="archive-list">
+    <li class="archive-link">
+      <a href="/about">About</a>
+      <a href="/archive">Archive</a>
+    </li>
+  </ul>
+
+  <br>
+  <div class="footer-copyright">
+    <small>
+    © <time datetime="2017-03-12T15:15:03-06:00">2017</time> StabbyProc.com All rights reserved.
+    </small>
+  </div>
+</footer>
+
+<script src="/js/twitter.js" type="text/javascript"></script>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-83001023-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    </div>
+
+  
+
+</default></body></html>
