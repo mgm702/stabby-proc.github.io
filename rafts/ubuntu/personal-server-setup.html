@@ -36,24 +36,27 @@
   <h1 class="post-title">Creating a Personal Git Server From Your Old Computer</h1>
     <sub class="article-date">Feb-02-2017</sub>
     <div class="post-tags-list">
-      <ul>
-        
-        <li><a href="http://stabbyproc.com/tags#docker" class="post-tag">docker</a></li>
-        
-        <li><a href="http://stabbyproc.com/tags#virtual-machine" class="post-tag">virtual-machine</a></li>
-        
-        <li><a href="http://stabbyproc.com/tags#core-os" class="post-tag">core-os</a></li>
-        
-      </ul>
+    
+    <a href="http://localhost:4000/tags#docker" class="post-tag">docker</a>
+    
+    <a href="http://localhost:4000/tags#virtual-machine" class="post-tag">virtual-machine</a>
+    
+    <a href="http://localhost:4000/tags#core-os" class="post-tag">core-os</a>
+    
     </div>
     <p>Recently, I’ve been looking for a new solution to hold my private git repositories. I know some people will say to use <a href="https://bitbucket.org/">Bitbucket</a> or <a href="https://about.gitlab.com/">Gitlab</a>, because they have free private repos and they’re amazing! And sure it’s true that they have great services that provide git management for you to use as you please, but the problem is that I wanted something that I could not only manage at the system level, but I  also wanted a solution that was independent and customizable. I debated the idea of using <a href="https://www.digitalocean.com/">Digital Ocean</a>, <a href="https://aws.amazon.com/">AWS</a> or <a href="https://www.heroku.com/">Heroku</a> to host my personal solution, but the money it would take to create a complete management tool made me think about how I could solve this problem while keeping my costs down. In addition to the price factor, a major point of emphasis for me was to have full control over the server and all of its components. Finally, my last goal with this server was to use <a href="https://www.docker.com/">Docker</a> to create and manage my technology stack, so I wanted to create something on my own. Around this time I was cleaning out part of my house, and what do I happen to find but my old <a href="https://www.amazon.com/Dell-15-6-Inch-Processor-Discontinued-Manufacturer/dp/B002PY7OSA">Dell</a> computer. This computer is nothing special but it does have the following specs:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="nl">Architecture:</span>          <span class="n">x86_64</span>
-<span class="n">CPU</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">:</span>                <span class="mi">2</span>
-<span class="n">Model</span> <span class="n">name</span><span class="o">:</span>            <span class="n">Intel</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="n">Core</span><span class="p">(</span><span class="n">TM</span><span class="p">)</span><span class="mi">2</span> <span class="n">Duo</span> <span class="n">CPU</span>     <span class="n">T6600</span>  <span class="err">@</span> <span class="mi">2</span><span class="p">.</span><span class="mi">20</span><span class="n">GHz</span>
-<span class="n">HDD</span><span class="o">:</span>                   <span class="mi">320</span><span class="n">GB</span>
-<span class="n">RAM</span><span class="o">:</span>                   <span class="mi">4096</span><span class="n">MB</span>
-<span class="n">Type</span><span class="o">:</span>                  <span class="n">DDR2</span></code></pre></figure>
+<div class="highlighter-rouge">
+<pre class="highlight"><code>
+Architecture:          x86_64
+CPU(s):                2
+Model name:            Intel(R) Core(TM)2 Duo CPU     T6600  @ 2.20GHz
+HDD:                   320GB
+RAM:                   4096MB
+Type:                  DDR2
+
+</code></pre>
+</div>
 
 <p>Definitely not anything I would brag about or use for my primary development machine, but it still has value to me, and I didn’t want to get rid of it just yet. So I thought to myself, why not try an older approach and configure my own home server that can run on <a href="https://www.docker.com">Docker</a> and use the <a href="https://about.gitlab.com/">Gitlab CE</a> open source tool to manage my git repos? I could also create other small utility sites that would turn this once dust collecting relic into a fully functional system that my family and I could use for our storage needs. I began thinking about what exactly I wanted on this home server of mine.</p>
 
@@ -99,7 +102,7 @@
     <li class="category-list">
       <a href="/categories#ruby">Ruby</a>
       <a href="/categories#ubuntu">Ubuntu</a>
-      <a href="/categories#vim">Vim</a>
+      <a href="/categories#vagrant">Vagrant</a>
     </li>
   </ul>
   <ul class="archive-list">
@@ -112,7 +115,7 @@
   <br>
   <div class="footer-copyright">
     <small>
-    © <time datetime="2017-03-22T22:09:01-06:00">2017</time> StabbyProc.com All rights reserved.
+    © <time datetime="2017-03-19T21:49:39-06:00">2017</time> StabbyProc.com All rights reserved.
     </small>
   </div>
 </footer>

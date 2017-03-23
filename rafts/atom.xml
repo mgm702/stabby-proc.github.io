@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
  <title>Stabby Proc</title>
- <link href="http://stabbyproc.com/atom.xml" rel="self"/>
- <link href="http://stabbyproc.com/"/>
- <updated>2017-03-22T22:09:01-06:00</updated>
- <id>http://stabbyproc.com</id>
+ <link href="http://localhost:4000/atom.xml" rel="self"/>
+ <link href="http://localhost:4000/"/>
+ <updated>2017-03-19T21:49:39-06:00</updated>
+ <id>http://localhost:4000</id>
  <author>
    <name>Matt Michnal</name>
    <email>mattm3646@gmail.com</email>
@@ -13,55 +13,10 @@
 
  
  <entry>
-   <title>What's VALUE in CRuby?</title>
-   <link href="http://stabbyproc.com/ruby/value-pointer-in-cruby.html"/>
-   <updated>2017-02-20T00:00:00-07:00</updated>
-   <id>http://stabbyproc.com/ruby/value-pointer-in-cruby</id>
-   <content type="html">&lt;p&gt;Before I talk about CRuby, I want to briefly discuss what the VALUE pointer is. Understanding what this pointer does will help when looking through &lt;a href=&quot;https://docs.ruby-lang.org/en/trunk/extension_rdoc.html&quot;&gt;CRuby source code&lt;/a&gt;. One great benefit about C is that every value and function must specifically declare the datatype that it’s working with. I find this super helpful when trying to investigate what something does in C code. By using this, it’s possible to determine the value type that the function uses, and what each parameter is before it’s used. This is different from Ruby or other dynamically typed languages, &lt;a href=&quot;http://www.rubyfleebie.com/ruby-is-dynamically-and-strongly-typed/&quot;&gt;where a function or variable data type is determined at runtime&lt;/a&gt;. While this is helpful when you’re working with objects that don’t have a specific data type, in my opinion I prefer the declared value type as it makes the code easier to read and understand.&lt;/p&gt;
-
-&lt;p&gt;When I inspect C code, I always try to identify the data type to better understand what’s going on. The only problem with inspecting CRuby source code though, was I kept running into this VALUE data type:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;example_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arg_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;another_example_func&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arg_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;var&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;What’s this data type and how can I use it to better understand the CRuby source code? As I thought about this dilemma, I remembered reading about VALUE in a book I finished a while back, &lt;a href=&quot;http://mgm702.com/books.html&quot;&gt;Ruby Under a Microscope&lt;/a&gt;. In this book the author, &lt;a href=&quot;http://www.rubyinside.com/&quot;&gt;Pat Shaughnessy&lt;/a&gt;, describes VALUE as a pointer to any RClass or RObject value in Ruby. In CRuby, these structures are used to hold resources and information about objects or classes such as the instance variable count, &lt;a href=&quot;http://inferior-products.com/docs/userdocs/ruby19/html/d7/da9/struct_r_object.html&quot;&gt;numiv&lt;/a&gt;, or a pointer to an array of instance variables, &lt;a href=&quot;http://inferior-products.com/docs/userdocs/ruby19/html/d7/da9/struct_r_object.html&quot;&gt;ivptr&lt;/a&gt;. RClass and RObject structures also contain an inner structure called RBasic which holds additional information about the object, most importantly the &lt;a href=&quot;http://inferior-products.com/docs/userdocs/ruby19/html/d7/da9/struct_r_object.html&quot;&gt;klass pointer&lt;/a&gt;. All of these are used by Ruby to help build object and class templates.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RObject&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;RBasic&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;basic&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;union&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	    &lt;span class=&quot;kt&quot;&gt;uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;numiv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-	    &lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ivptr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-            &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iv_index_tbl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* shortcut for RCLASS_IV_INDEX_TBL(rb_obj_class(obj)) */&lt;/span&gt;
-	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;heap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ary&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ROBJECT_EMBED_LEN_MAX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Another interesting fact about VALUE is how it’s represented internally by CRuby. While most of the time using a pointer data type would be the best solution, instead VALUE is represented as an unsigned long. Because on most computer platforms, &lt;code class=&quot;highlighter-rouge&quot;&gt;sizeof(void *)&lt;/code&gt; is equal to &lt;code class=&quot;highlighter-rouge&quot;&gt;sizeof(long)&lt;/code&gt;, this representation is not an issue. The main purpose of the pointer continues to be holding the memory address of the structure on the heap, however, by using the unsigned long data type, Ruby is able to leverage performance benefits. Smaller data types such as &lt;a href=&quot;http://archive.oreilly.com/pub/post/the_ruby_value_1.html&quot;&gt;nil, symbols, true, false, and small integers are saved directly to VALUE&lt;/a&gt;. Ruby remembers these classes using a series of bit flags saved in the first few bits of VALUE. This means that these classes are saved on the stack instead of the normal place where CRuby stores them, the heap.&lt;/p&gt;
-
-&lt;p&gt;&lt;span class=&quot;&quot;&gt;
-  &lt;img src=&quot;http://i1368.photobucket.com/albums/ag177/Matt_Michnal/2__ruby_zps51pby4fp.png&quot; /&gt;
-&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;When working with objects in Ruby, other than the smaller class types, the VALUE pointer is used as a reference to CRuby class data structures. Because information in objects has a longer lifespan and more complicated data, the actual data structure is saved on the heap and then VALUE is used to hold its memory address. When the VALUE is no longer referenced in Ruby code, it will remove the memory address from storage, making the structure on the heap ready for garbage collection. This is illustrated below with a simple RObject structure:&lt;/p&gt;
-
-&lt;p&gt;&lt;span class=&quot;&quot;&gt;
-  &lt;img src=&quot;http://i1368.photobucket.com/albums/ag177/Matt_Michnal/heapstack_zpsa0yqblmn.png&quot; /&gt;
-&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;I hope this information helps when trying to follow &lt;a href=&quot;http://stabbyproc.com/tags/#cruby&quot;&gt;my series of CRuby source code posts&lt;/a&gt;!&lt;/p&gt;
-</content>
- </entry>
- 
- <entry>
    <title>Tools I'm Using to Inspect CRuby Source Code</title>
-   <link href="http://stabbyproc.com/ruby/tools-being-used-for-c-ruby-inspection.html"/>
+   <link href="http://localhost:4000/ruby/tools-being-used-for-c-ruby-inspection.html"/>
    <updated>2017-02-17T00:00:00-07:00</updated>
-   <id>http://stabbyproc.com/ruby/tools-being-used-for-c-ruby-inspection</id>
+   <id>http://localhost:4000/ruby/tools-being-used-for-c-ruby-inspection</id>
    <content type="html">&lt;p&gt;This is a short post about the tools that I’m going to use to investigate methods in the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;. Hopefully using these same techniques, if you feel like it, you can follow along as you read through this &lt;a href=&quot;http://stabbyproc.com/tags#cruby&quot;&gt;series of posts&lt;/a&gt;. With better understanding of the tools that I’m going to be using, you will be better equipped to understand the &lt;a href=&quot;http://ruby-doc.org/&quot;&gt;CRuby source code&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;span class=&quot;mr-miyagi&quot;&gt;
@@ -127,9 +82,9 @@
  
  <entry>
    <title>Deep Dive Into CRuby Source Code - A Fun Experiment in Learning</title>
-   <link href="http://stabbyproc.com/ruby/intro-learning-c-through-ruby.html"/>
+   <link href="http://localhost:4000/ruby/intro-learning-c-through-ruby.html"/>
    <updated>2017-02-15T00:00:00-07:00</updated>
-   <id>http://stabbyproc.com/ruby/intro-learning-c-through-ruby</id>
+   <id>http://localhost:4000/ruby/intro-learning-c-through-ruby</id>
    <content type="html">&lt;p&gt;I’ve been working with a lot of C code lately and it’s amazing!&lt;/p&gt;
 
 &lt;div class=&quot;big-emoji&quot;&gt;
@@ -156,17 +111,21 @@
  
  <entry>
    <title>Creating a Personal Git Server From Your Old Computer</title>
-   <link href="http://stabbyproc.com/ubuntu/personal-server-setup.html"/>
+   <link href="http://localhost:4000/ubuntu/personal-server-setup.html"/>
    <updated>2017-02-02T00:00:00-07:00</updated>
-   <id>http://stabbyproc.com/ubuntu/personal-server-setup</id>
+   <id>http://localhost:4000/ubuntu/personal-server-setup</id>
    <content type="html">&lt;p&gt;Recently, I’ve been looking for a new solution to hold my private git repositories. I know some people will say to use &lt;a href=&quot;https://bitbucket.org/&quot;&gt;Bitbucket&lt;/a&gt; or &lt;a href=&quot;https://about.gitlab.com/&quot;&gt;Gitlab&lt;/a&gt;, because they have free private repos and they’re amazing! And sure it’s true that they have great services that provide git management for you to use as you please, but the problem is that I wanted something that I could not only manage at the system level, but I  also wanted a solution that was independent and customizable. I debated the idea of using &lt;a href=&quot;https://www.digitalocean.com/&quot;&gt;Digital Ocean&lt;/a&gt;, &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;AWS&lt;/a&gt; or &lt;a href=&quot;https://www.heroku.com/&quot;&gt;Heroku&lt;/a&gt; to host my personal solution, but the money it would take to create a complete management tool made me think about how I could solve this problem while keeping my costs down. In addition to the price factor, a major point of emphasis for me was to have full control over the server and all of its components. Finally, my last goal with this server was to use &lt;a href=&quot;https://www.docker.com/&quot;&gt;Docker&lt;/a&gt; to create and manage my technology stack, so I wanted to create something on my own. Around this time I was cleaning out part of my house, and what do I happen to find but my old &lt;a href=&quot;https://www.amazon.com/Dell-15-6-Inch-Processor-Discontinued-Manufacturer/dp/B002PY7OSA&quot;&gt;Dell&lt;/a&gt; computer. This computer is nothing special but it does have the following specs:&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;nl&quot;&gt;Architecture:&lt;/span&gt;          &lt;span class=&quot;n&quot;&gt;x86_64&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;CPU&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;                &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;Model&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;Intel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;R&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Core&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Duo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CPU&lt;/span&gt;     &lt;span class=&quot;n&quot;&gt;T6600&lt;/span&gt;  &lt;span class=&quot;err&quot;&gt;@&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GHz&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;HDD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;                   &lt;span class=&quot;mi&quot;&gt;320&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GB&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;RAM&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;                   &lt;span class=&quot;mi&quot;&gt;4096&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MB&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;Type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;                  &lt;span class=&quot;n&quot;&gt;DDR2&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+Architecture:          x86_64
+CPU(s):                2
+Model name:            Intel(R) Core(TM)2 Duo CPU     T6600  @ 2.20GHz
+HDD:                   320GB
+RAM:                   4096MB
+Type:                  DDR2
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
 
 &lt;p&gt;Definitely not anything I would brag about or use for my primary development machine, but it still has value to me, and I didn’t want to get rid of it just yet. So I thought to myself, why not try an older approach and configure my own home server that can run on &lt;a href=&quot;https://www.docker.com&quot;&gt;Docker&lt;/a&gt; and use the &lt;a href=&quot;https://about.gitlab.com/&quot;&gt;Gitlab CE&lt;/a&gt; open source tool to manage my git repos? I could also create other small utility sites that would turn this once dust collecting relic into a fully functional system that my family and I could use for our storage needs. I began thinking about what exactly I wanted on this home server of mine.&lt;/p&gt;
 
@@ -187,36 +146,10 @@
  </entry>
  
  <entry>
-   <title>A Look at my Vimrc Setup</title>
-   <link href="http://stabbyproc.com/vim/my-vimrc-setup.html"/>
-   <updated>2016-11-23T00:00:00-07:00</updated>
-   <id>http://stabbyproc.com/vim/my-vimrc-setup</id>
-   <content type="html">&lt;p&gt;My favorite software project/tool that I’ve used in my time working with computers is without a doubt &lt;a href=&quot;http://www.vim.org/&quot;&gt;Vim&lt;/a&gt;. This small, but powerful text editor is not only simple in its design and purpose, but it’s also a testament to how a well developed and designed tool will stand the test of time. As I’m writing this post, Vim is now celebrating &lt;a href=&quot;https://opensource.com/life/16/11/happy-birthday-vim-25&quot;&gt;25 years&lt;/a&gt; of being a successful open source project, and it can be found on almost every unix computer around the world. &lt;a href=&quot;http://www.vim.org/&quot;&gt;Vim&lt;/a&gt; allows you to use commands to quickly edit and create text/code with little effort and movement from the keyboard. It’s a developer’s dream tool, and once you’ve conquered the &lt;a href=&quot;https://robots.thoughtbot.com/the-vim-learning-curve-is-a-myth&quot;&gt;initial hurdle it takes to get comfortable with the editor&lt;/a&gt;, you will quickly discover that there’s no going back to the text editor you used before you tried &lt;a href=&quot;http://www.vim.org/&quot;&gt;Vim&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;span class=&quot;&quot;&gt;
-  &lt;img src=&quot;https://media.giphy.com/media/26gYL5WTYK4OX1QIw/giphy.gif&quot; /&gt;
-&lt;/span&gt;&lt;/p&gt;
-
-&lt;p&gt;This powerful tool has helped me develop exceptional software for the past couple of years and I wanted to take a moment to talk about the most important part of Vim and that’s &lt;a href=&quot;http://learnvimscriptthehardway.stevelosh.com/chapters/00.html&quot;&gt;the vimrc file&lt;/a&gt;. For many users of the text editor, this file is symbolic of their own custom configurations being included in Vim. With this file you can specifically set up how you want Vim to behave and function while using the tool. It’s a powerful file that &lt;a href=&quot;http://stevelosh.com/blog/2010/09/coming-home-to-vim/&quot;&gt;many people have written blog posts about&lt;/a&gt; and it’s frequently discussed by many &lt;a href=&quot;http://www.vim.org/&quot;&gt;Vim&lt;/a&gt; users. That’s why in this series of posts I’m going to highlight some of the more interesting parts of &lt;a href=&quot;https://github.com/mgm702/dotfiles/blob/master/vim/vimrc&quot;&gt;my vimrc file&lt;/a&gt;. And although there are many &lt;a href=&quot;http://stevelosh.com/blog/2010/09/coming-home-to-vim/&quot;&gt;other vimrc configurations out there&lt;/a&gt;, these are the ones that seem to work for me. So feel free to use any of the settings at your leisure or peril.&lt;/p&gt;
-
-&lt;div class=&quot;github-card&quot;&gt;
-  &lt;a href=&quot;https://github.com/mgm702/dotfiles&quot;&gt;
-    &lt;i class=&quot;devicon-github-plain-wordmark colored devicon&quot;&gt;&lt;/i&gt;
-    &lt;span class=&quot;github-card-text&quot;&gt;Mgm702 - Dotfiles&lt;/span&gt;&lt;i class=&quot;fa fa-github-square&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;
-  &lt;/a&gt;
-&lt;/div&gt;
-
-&lt;p&gt;The two main parts of &lt;a href=&quot;https://github.com/mgm702/dotfiles/blob/master/vim/vimrc&quot;&gt;my vimrc file&lt;/a&gt; that I’m going to focus on is splitting settings up into smaller more manageable files and how to solve vim loading speed problems using vim-plug and other techniques. By following these techniques, I’ve been able to create a flexible and dependable configuration. I’m constantly tweaking and correcting my vimrc file for better efficiency and speed because I use this tool very often in my developer workflow. Hopefully these posts will give someone who is looking to use vim as a text editor a useful resource for better managing their vimrc file.&lt;/p&gt;
-
-&lt;p&gt;So let’s get started with how to &lt;a href=&quot;http://stabbyproc.com/tags/#vimrc&quot;&gt;split the vimrc into more manageable parts&lt;/a&gt;!&lt;/p&gt;
-</content>
- </entry>
- 
- <entry>
    <title>How To Fix Permissions Issue In Vagrant</title>
-   <link href="http://stabbyproc.com/vagrant/how-to-fix-permissions-issue-in-vagrant.html"/>
+   <link href="http://localhost:4000/vagrant/how-to-fix-permissions-issue-in-vagrant.html"/>
    <updated>2016-07-25T00:00:00-06:00</updated>
-   <id>http://stabbyproc.com/vagrant/how-to-fix-permissions-issue-in-vagrant</id>
+   <id>http://localhost:4000/vagrant/how-to-fix-permissions-issue-in-vagrant</id>
    <content type="html">&lt;p&gt;While working for &lt;a href=&quot;http://www.aimmedia.com/&quot;&gt;Active Interest Media&lt;/a&gt;, I created a &lt;a href=&quot;https://www.vagrantup.com/&quot;&gt;Vagrant Box&lt;/a&gt; in order to help with on-boarding new developers. The goal was to create a specialized environment that, not only closely mimicked the company’s production environment on &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;Amazon Web Services&lt;/a&gt;, but also created a way for developers on different OS systems to quickly contribute to the codebase. Because many of the company’s developers worked on Windows and Unix machines, this was a major problem that I was looking to solve.&lt;/p&gt;
 
 &lt;p&gt;Most of the process was pretty straightforward and I was able to create a &lt;a href=&quot;https://en.wikipedia.org/wiki/LAMP_(software_bundle)&quot;&gt;LAMP stack box&lt;/a&gt; with a mixture of &lt;a href=&quot;https://www.chef.io/chef/&quot;&gt;Chef&lt;/a&gt; and bash commands. Everything was set up and working on different OS environments successfully, but when I tried a simple write process to one of our site’s files on the box, it froze.&lt;/p&gt;
@@ -243,9 +176,9 @@
  
  <entry>
    <title>Not Quite My Tempo - Testing OmniAuth with RSpec!</title>
-   <link href="http://stabbyproc.com/ruby/test-omniauth-with-rspec.html"/>
+   <link href="http://localhost:4000/ruby/test-omniauth-with-rspec.html"/>
    <updated>2016-06-21T00:00:00-06:00</updated>
-   <id>http://stabbyproc.com/ruby/test-omniauth-with-rspec</id>
+   <id>http://localhost:4000/ruby/test-omniauth-with-rspec</id>
    <content type="html">&lt;p&gt;I recently worked on a project that incorporated OmniAuth functionality, and I wanted to ensure that everything was testing properly.&lt;/p&gt;
 
 &lt;p&gt;I was using the RSpec and Capybara testing frameworks to test features and user behavior. I normally prefer MiniTest when choosing a testing framework, but hey if it’s not broke why fix it. Anyways, I was put in charge of both the OmniAuth functionality and the testing to make sure that they worked correctly. This is not an easy task because you’re basically simulating a successful sign into a third party platform, plus you have to return info back to your application.&lt;/p&gt;
