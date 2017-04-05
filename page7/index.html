@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="https://cdn.rawgit.com/konpa/devicon/master/devicon.min.css">
   <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
-  <link rel="shortcut icon" href="/public/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?">
+
   <link rel="alternate" type="application/atom+xml" title="Stabby Proc" href="/atom.xml">
 
 
@@ -25,7 +26,7 @@
       <header class="masthead">
         <h2 class="masthead-title">
           <a href="/" title="Home">
-            <img src="/public/stabby-proc-logo-title.png">
+            <img src="/public/stabby-proc-logo.png">
           </a>
         </h2>
         <span class="tagline">- "Taking a stab at this thing called blogging!"</span>
@@ -33,6 +34,106 @@
 
       <main>
       <div class="posts">
+  
+  <article class="post">
+    <h1 class="post-title">
+      <a href="/ruby/array-first-last-in-cruby-part1.html">
+        Array's First and Last method in CRuby Source Code - Part 1
+      </a>
+    </h1>
+
+    <sub class="article-date">Feb-23-2017</sub>
+    <p>The first area of Ruby source code that I want to discuss is the array data structure. The reason I want to begin with array data structure is because of the similar nature in which C and Ruby arrays operate. It’s also fascinating to see how C data structures are used and transformed in order to provide helper functions in Ruby that aren’t built into the core of C programming. However, before talking about the functions in Ruby, we first have to discuss how arrays are represented in MRI.</p>
+
+<p>in CRuby, the <code class="highlighter-rouge">RArray</code> structure is used to represent each array you create in Ruby. Similar to other C structures in MRI, <code class="highlighter-rouge">RArray</code> holds the RBasic inner structure. This structure holds the klass pointer and other information necessary for object creation. In addition to basic object values, <code class="highlighter-rouge">RArray</code> holds important information about array allocation and management. Some of these values include the long variable <code class="highlighter-rouge">len</code>, which holds the number of values saved to the array, <code class="highlighter-rouge">ptr</code>, which is a pointer to a memory segment CRuby allocates individually in order to save array elements, and <code class="highlighter-rouge">shared</code>, which represents data that is consolidated between multiple arrays. All of these can be seen below in the <code class="highlighter-rouge">RArray</code> structure definition which can be found in your <code class="highlighter-rouge">ruby.h</code> file:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">struct</span> <span class="n">RArray</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">RBasic</span> <span class="n">basic</span><span class="p">;</span>
+    <span class="k">union</span> <span class="p">{</span>
+	<span class="k">struct</span> <span class="p">{</span>
+	    <span class="kt">long</span> <span class="n">len</span><span class="p">;</span>
+	    <span class="k">union</span> <span class="p">{</span>
+		<span class="kt">long</span> <span class="n">capa</span><span class="p">;</span>
+		<span class="n">VALUE</span> <span class="n">shared</span><span class="p">;</span>
+	    <span class="p">}</span> <span class="n">aux</span><span class="p">;</span>
+	    <span class="k">const</span> <span class="n">VALUE</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
+	<span class="p">}</span> <span class="n">heap</span><span class="p">;</span>
+	<span class="k">const</span> <span class="n">VALUE</span> <span class="n">ary</span><span class="p">[</span><span class="n">RARRAY_EMBED_LEN_MAX</span><span class="p">];</span>
+    <span class="p">}</span> <span class="n">as</span><span class="p">;</span>
+<span class="p">};</span></code></pre></figure>
+
+<p>Now that you have an understanding about how the array object is created in Ruby, we can now talk about how CRuby creates the functions that make Ruby such an amazing language. I’ve decided that the first two methods I’m going to look at are simple and useful for finding elements in an array, <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-first">Array#first</a> and <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-last">Array#last</a>. Both of these functions are easy to understand in terms of their purpose and how to implement them. However, I can’t tell you how many times throughout my day I use these methods when working with array objects. They are functions that Ruby programmers take for granted so let’s take a look at how these functions are implemented under the hood.</p>
+
+<p>The first thing I did in order to <a href="http://stabbyproc.com/ruby/tools-being-used-for-c-ruby-inspection.html">inspect these functions was open up the pry REPL program</a> and use the <code class="highlighter-rouge">show-source</code> method. I was able to pull both methods from the source code and they’re both shown below:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">show</span><span class="o">-</span><span class="n">source</span> <span class="n">Array</span><span class="err">#</span><span class="n">last</span>
+
+<span class="n">From</span><span class="o">:</span> <span class="n">array</span><span class="p">.</span><span class="n">c</span> <span class="p">(</span><span class="n">C</span> <span class="n">Method</span><span class="p">)</span><span class="o">:</span>
+<span class="n">Owner</span><span class="o">:</span> <span class="n">Array</span>
+<span class="n">Visibility</span><span class="o">:</span> <span class="n">public</span>
+<span class="n">Number</span> <span class="n">of</span> <span class="n">lines</span><span class="o">:</span> <span class="mi">12</span>
+
+<span class="n">VALUE</span> <span class="n">rb_ary_last</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="n">VALUE</span> <span class="o">*</span><span class="n">argv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">ary</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kt">long</span> <span class="n">len</span> <span class="o">=</span> <span class="n">RARRAY_LEN</span><span class="p">(</span><span class="n">ary</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Qnil</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">RARRAY_AREF</span><span class="p">(</span><span class="n">ary</span><span class="p">,</span> <span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">ary_take_first_or_last</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">ary</span><span class="p">,</span> <span class="n">ARY_TAKE_LAST</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And here’s the <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-first">Array#first</a> method in CRuby:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="n">pry</span><span class="p">(</span><span class="n">main</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">show</span><span class="o">-</span><span class="n">source</span> <span class="n">Array</span><span class="err">#</span><span class="n">first</span>
+
+<span class="n">From</span><span class="o">:</span> <span class="n">array</span><span class="p">.</span><span class="n">c</span> <span class="p">(</span><span class="n">C</span> <span class="n">Method</span><span class="p">)</span><span class="o">:</span>
+<span class="n">Owner</span><span class="o">:</span> <span class="n">Array</span>
+<span class="n">Visibility</span><span class="o">:</span> <span class="n">public</span>
+<span class="n">Number</span> <span class="n">of</span> <span class="n">lines</span><span class="o">:</span> <span class="mi">11</span>
+
+<span class="k">static</span> <span class="n">VALUE</span> <span class="n">rb_ary_first</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="n">VALUE</span> <span class="o">*</span><span class="n">argv</span><span class="p">,</span> <span class="n">VALUE</span> <span class="n">ary</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">RARRAY_LEN</span><span class="p">(</span><span class="n">ary</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Qnil</span><span class="p">;</span>
+      <span class="k">return</span> <span class="n">RARRAY_AREF</span><span class="p">(</span><span class="n">ary</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">ary_take_first_or_last</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="n">ary</span><span class="p">,</span> <span class="n">ARY_TAKE_FIRST</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>As you can see, both of these functions have a lot of similarities. They take the same values in each and they both return a <a href="http://stabbyproc.com/ruby/value-pointer-in-cruby.html">VALUE pointer</a>, which represents the new array value returned from the function. These methods also check to make sure that the array length is greater than zero, otherwise <code class="highlighter-rouge">Qnil</code> is returned. Finally, both functions are similar in that they call the <code class="highlighter-rouge">ary_take_first_or_last</code> method if the array wants to return more than just one object from the list. However, before I talk about that function I want to cover how each method returns a single object from either the front or the end of the array.</p>
+
+<p>In <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-first">Array#first</a> the method first checks to see if the <a href="http://crasseux.com/books/ctutorial/argc-and-argv.html">argc</a> variable is equal to 0. That means that the Ruby program doesn’t want to return anything more than the first value from the array. Afterwards, the function checks to see if the length of the array is greater than zero. If it’s not, then the function returns the nil value, <code class="highlighter-rouge">Qnil</code>. If the array length is greater than zero though, then the function calls to <code class="highlighter-rouge">RARRAY_AREF</code> with the array and value that needs to be returned. In this case, that value is 0 because we want the first element in the array.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">RARRAY_LEN</span><span class="p">(</span><span class="n">ary</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Qnil</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">RARRAY_AREF</span><span class="p">(</span><span class="n">ary</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>The functionality is very similar when working with <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-last">Array#last</a>. The only difference is the value that needs to be returned from the array. I found this part of the function very interesting because I was wondering how C arrays would handle returning the last value from an array, since there’s no natural way for the data structure to do so. However, in CRuby, we leverage the <code class="highlighter-rouge">RArray</code> structure variable, <code class="highlighter-rouge">len</code>, which holds the Ruby array’s length. Finally, we pass this along to the <code class="highlighter-rouge">RARRAY_AREF</code> function where the single value is returned.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">long</span> <span class="n">len</span> <span class="o">=</span> <span class="n">RARRAY_LEN</span><span class="p">(</span><span class="n">ary</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">Qnil</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">RARRAY_AREF</span><span class="p">(</span><span class="n">ary</span><span class="p">,</span> <span class="n">len</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p><code class="highlighter-rouge">RARRAY_AREF</code> is a preprocessor function which returns an array value based on the <code class="highlighter-rouge">i</code> input variable. You can see this in the code below because of the square brackets and reference to the <code class="highlighter-rouge">RARRAY_CONST_PTR</code> function. This function returns the constant <code class="highlighter-rouge">VALUE</code> pointer to the <code class="highlighter-rouge">RArray</code> structure passed into the function and using the brackets means that we are returning an array with a single value back to Ruby.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c">  <span class="cp">#ifndef RARRAY_AREF
+</span>  <span class="cp"># define RARRAY_AREF(a, i) (RARRAY_CONST_PTR(a)[i])
+</span>  <span class="cp">#endif</span></code></pre></figure>
+
+<p>And that’s it. Both <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-first">Array#first</a> and <a href="https://ruby-doc.org/core-2.4.0/Array.html#method-i-last">Array#last</a> pass their functionality to this function in order to return the necessary value from the array. In the next post I will cover how both these Ruby functions return multiple values from the array, including an in depth look at the <code class="highlighter-rouge">ary_take_first_or_last</code> function.</p>
+
+
+    <a class="twitter-follow-button" href="https://twitter.com/mgm702" data-show-count="false">
+      Follow @mgm702</a>
+    </article>
   
   <article class="post">
     <h1 class="post-title">
@@ -234,6 +335,78 @@
   
   <article class="post">
     <h1 class="post-title">
+      <a href="/vim/organize-vimrc-setup.html">
+        Organizing Your Vimrc Into Multiple Files
+      </a>
+    </h1>
+
+    <sub class="article-date">Dec-02-2016</sub>
+    <p>This post is about splitting up your vimrc file into smaller more manageable systems. <a href="https://github.com/mgm702/dotfiles/tree/master/vim">My vimrc</a> is easier to organize using this layout, and it allows me to add or remove settings and plugins at will. This is useful when you’re constantly updating and changing your vimrc settings. Sometimes I’ll look through <a href="https://dougblack.io/words/a-good-vimrc.html">popular vimrc files</a> for new and interesting methods or settings to incorporate into my setup that allow me to make quick additions or subtractions.</p>
+
+<p>The first part of setting up a more dynamic vim setup is expanding and sourcing in files into your primary vimrc file. This allows you to break up a large vimrc file into smaller parts that you then control whether they’re sourced into your setup or not. Also, breaking up the file into more modular components allows you to understand parts of the vim setup more easily and quickly. No longer do you have to wonder if the settings you added to your vimrc are meant for a plugin or not, just <a href="https://github.com/mgm702/dotfiles/tree/master/vim/settings">create a new specific plugin file for those settings</a> and source it in. This gives amazing flexibility to the vim configuration system; however, sourcing in vim files can also be dangerous if not well-contained. You don’t want to source a file into your vimrc if it doesn’t exist or is in the incorrect location on your system.</p>
+
+<p>The important component in making this possible is the <code class="highlighter-rouge">filereadable</code> method, which, with the help of the expand method, test a certain path to see if the file actually exists in that location. If it does, then the next step is to <code class="highlighter-rouge">source</code> in the file so it can be used by <a href="https://github.com/mgm702/dotfiles/tree/master/vim">my vimrc</a>:</p>
+
+<figure class="highlight"><pre><code class="language-vim" data-lang="vim"><span class="k">if</span> filereadable<span class="p">(</span>expand<span class="p">(</span><span class="s2">"~/.vim/plugins.vim"</span><span class="p">))</span>
+  source <span class="p">~</span><span class="sr">/.vim/</span>plugins<span class="p">.</span><span class="k">vim</span>
+<span class="k">endif</span>
+
+<span class="k">if</span> filereadable<span class="p">(</span>expand<span class="p">(</span><span class="s2">"~/.vim/settings.vim"</span><span class="p">))</span>
+  source <span class="p">~</span><span class="sr">/.vim/</span>settings<span class="p">.</span><span class="k">vim</span>
+<span class="k">endif</span></code></pre></figure>
+
+<p>The benefit of this is that if the file isn’t found on the system, then the vimrc file doesn’t try to source in a file which doesn’t exist where it should be on your computer. This is helpful because if your vimrc tried to source in the file without this safeguard, it would throw an error and everything would blow up!</p>
+
+<p><span class="">
+  <img src="https://media.giphy.com/media/xuDHhHcCR0rew/giphy.gif">
+</span></p>
+
+<p>The first thing that I like to organize in <a href="https://github.com/mgm702/dotfiles/tree/master/vim/plugins">my vim setup is my plugins</a>. I work with a variety of languages and I like my plugins to be organized based on my needs during development. The plugin manager I use to install and setup the necessary plugins is <a href="https://github.com/junegunn/vim-plug">vim-plug</a>. This is an amazing tool and you should seriously check it out if you want to <a href="https://github.com/junegunn/vim-plug">leverage on-demand loading</a> for your vim plugins. This helped me greatly reduce my startup time, and it still allows me to work with all my favorite tools in whatever language I choose.</p>
+
+<p>That’s why in the first couple of lines in my <code class="highlighter-rouge">plugins.vim</code> file I focus on loading and configuring <a href="https://github.com/junegunn/vim-plug">vim-plug</a> to help manage my plugins. After that is installed and set up, I change the runtime path, or <code class="highlighter-rouge">rtp</code>, so that vim is able to find all of the plugins pages located in the <code class="highlighter-rouge">plugins</code> directory that I organize based on need and language. This configuration allows me to add and remove plugins quickly based on necessity at the moment. An example of this can be found below where I have commented out the <code class="highlighter-rouge">status_line.plugins</code> file because I’m <a href="https://github.com/mgm702/dotfiles/blob/master/vim/settings/status_line.vim">currently using a simple status line instead</a>.</p>
+
+<figure class="highlight"><pre><code class="language-vim" data-lang="vim"><span class="c">" Load vim-plug</span>
+<span class="k">if</span> empty<span class="p">(</span>glob<span class="p">(</span><span class="s2">"~/.vim/autoload/plug.vim"</span><span class="p">))</span>
+  execute <span class="s1">'!curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'</span>
+<span class="k">endif</span>
+
+<span class="k">call</span> plug#begin<span class="p">(</span><span class="s1">'~/.vim/bundle'</span><span class="p">)</span>
+
+<span class="k">set</span> rtp<span class="p">+=~</span><span class="sr">/.vim/</span>plugins/
+
+runtime <span class="k">ruby</span><span class="p">.</span>plugins
+runtime autocomplete<span class="p">.</span>plugins
+runtime git<span class="p">.</span>plugins
+runtime php<span class="p">.</span>plugins
+runtime project<span class="p">.</span>plugins
+runtime html<span class="p">.</span>plugins
+runtime js<span class="p">.</span>plugins
+runtime css<span class="p">.</span>plugins
+runtime <span class="k">c</span><span class="p">.</span>plugins
+runtime <span class="k">go</span><span class="p">.</span>plugins
+runtime <span class="k">c</span><span class="p">.</span>plugins
+<span class="c">" runtime status_line.plugins</span>
+
+<span class="k">call</span> plug#<span class="k">end</span><span class="p">()</span></code></pre></figure>
+
+<p>After the plugins are in place, the next thing that I focus on is loading in the vim settings files. I do this by creating a <a href="https://github.com/mgm702/dotfiles/tree/master/vim/settings">settings directory</a> which will hold the smaller, more manageable files such as search, folding, and indentation settings. Then I use a <code class="highlighter-rouge">for</code> loop with the <code class="highlighter-rouge">globpath</code> method, which expands the directory and returns an array of files inside that directory, to find each file in the settings directory. Finally a call to source the file is executed and each of the settings are loaded into my vim configuration.</p>
+
+<figure class="highlight"><pre><code class="language-vim" data-lang="vim"><span class="k">let</span> vimsettings <span class="p">=</span> <span class="s1">'~/.vim/settings'</span>
+<span class="k">let</span> uname <span class="p">=</span> system<span class="p">(</span><span class="s2">"uname -s"</span><span class="p">)</span>
+
+<span class="k">for</span> fpath <span class="k">in</span> split<span class="p">(</span>globpath<span class="p">(</span>vimsettings<span class="p">,</span> <span class="s1">'\*.vim'</span><span class="p">),</span> <span class="s1">'\n'</span><span class="p">)</span>
+  exe <span class="s1">'source'</span> fpath
+<span class="k">endfor</span></code></pre></figure>
+
+<p>And finally you’re ready to go. Now you have a vim setup that is flexible and can adjust based on the language you’re using for development. I hope this setup works for you because it has been a huge benefit for me for a long time. Being able to change and adapt is one of the reasons I love using Vim, and creating my setup like this reflects that. In the next post I will talk more about vim-plug and how I used that among other techniques to solve my vim loading speed problem.</p>
+
+
+    <a class="twitter-follow-button" href="https://twitter.com/mgm702" data-show-count="false">
+      Follow @mgm702</a>
+    </article>
+  
+  <article class="post">
+    <h1 class="post-title">
       <a href="/vim/my-vimrc-setup.html">
         A Look at my Vimrc Setup
       </a>
@@ -302,7 +475,7 @@
   <article class="post">
     <h1 class="post-title">
       <a href="/ruby/test-omniauth-with-rspec.html">
-        Not Quite My Tempo - Testing OmniAuth with RSpec!
+        Not Quite My Tempo - Testing OmniAuth with RSpec
       </a>
     </h1>
 
@@ -386,7 +559,7 @@ Many solutions had close to what I was looking for, but often times they would b
   <br>
   <div class="footer-copyright">
     <small>
-    © <time datetime="2017-03-22T22:09:01-06:00">2017</time> StabbyProc.com All rights reserved.
+    © <time datetime="2017-04-05T00:09:50-06:00">2017</time> StabbyProc.com All rights reserved.
     </small>
   </div>
 </footer>
